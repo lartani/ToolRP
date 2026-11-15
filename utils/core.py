@@ -1,4 +1,5 @@
 import pathlib
+from config import MCMETA_TEMPLATE, versions
 
 def ensure_required_directories():
     dir_path = pathlib.Path("resource_packs")
@@ -14,6 +15,16 @@ def create_resource_pack():
         create_resource_pack()  # Prompt the user again for a new name
     else:
         pack_dir.mkdir()
+        print("Available Minecraft versions:")
+        for num,ver in enumerate(versions.keys(), start=1):
+            print(f"{num}. {ver}")
+        while True:
+            version = input("Enter the version of minecraft, you would like to create: ")
+            if version in versions:
+                break
+            print(f"Version '{version}' is not supported. Please choose from the following versions: {', '.join(versions.keys())}")
+        with open(pack_dir / "pack.mcmeta", "w") as f:
+            f.write(MCMETA_TEMPLATE.replace("<pack_format>", str(versions[version]["pack_format"])))
         print(f"Created new resource pack: {pack_dir}")
 
 def choose_resource_pack():
