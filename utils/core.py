@@ -15,17 +15,23 @@ def create_resource_pack():
         create_resource_pack()  # Prompt the user again for a new name
     else:
         pack_dir.mkdir()
+        assets_dir = pack_dir / "assets"
+        assets_dir.mkdir()
         print("Available Minecraft versions:")
-        for num,ver in enumerate(versions.keys(), start=1):
-            print(f"{num}. {ver}")
+        for ver in versions.keys():
+            print(f"- {ver}")
         while True:
-            version = input("Enter the version of minecraft, you would like to create: ")
+            version = input("Enter the version of minecraft, you would like to create(default latest): ")
+            if not version:
+                version = list(versions.keys())[0] # Default to the latest version if no input is provided
+                print("Choosing the latest version by default.")
+                break
             if version in versions:
                 break
             print(f"Version '{version}' is not supported. Please choose from the following versions: {', '.join(versions.keys())}")
         with open(pack_dir / "pack.mcmeta", "w") as f:
             f.write(MCMETA_TEMPLATE.replace("<pack_format>", str(versions[version]["pack_format"])))
-        print(f"Created new resource pack: {pack_dir}")
+        print(f"Created new resource pack: {pack_dir}, with version: {version}")
 
 def choose_resource_pack():
     packs_dir = pathlib.Path("resource_packs")
@@ -50,8 +56,26 @@ def choose_resource_pack():
         except ValueError:
             print("Invalid input. Please enter a number.")
 
+def choose_namespace(resource_pack: pathlib.Path):
+    namespace_dir = resource_pack / "assets"
+    namespaces = [d.name for d in namespace_dir.iterdir() if d.is_dir()]
+    print(f"Available namespaces in:")
+    for namespace_dir in namespaces:
+        print(f"- {namespace_dir}")
+    print("Create a new namespace by entering a name, or select an existing one by typing its name.")
+    namespace = input("Enter the name of the namespace: ")
+    if not namespace:
+        return None
+    if namespace not in namespaces:
+        new_namespace_dir = namespace_dir / namespace
+        new_namespace_dir.mkdir()
+        print(f"Created new namespace: {namespace}")
+    return namespace
+
 def edit_resource_pack():
     selected_pack = choose_resource_pack()
     if selected_pack:
         # Placeholder for editing logic
-        print(f"Editing resource pack: {selected_pack.name}")
+        print(f"Editing resource pack: {selected_pack.name}")    
+        if not choose_namespace(selected_pack):
+            print("No namespace selected. Exiting edit mode.")
