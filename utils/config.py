@@ -8,3 +8,27 @@ MCMETA_TEMPLATE = '''"pack": {
     "description": "Created by ToolRP",
     "pack_format": <pack_format>
 }'''
+
+NEW_TEMPLATE = {
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/paper"
+    },
+    "entries": [
+
+    ]
+  }
+}
+
+def make_entry(model_path: str, threshold: int):
+    return {
+        "threshold": threshold,
+        "model": {
+            "type": "minecraft:model",
+            "model": model_path
+        }
+    }
