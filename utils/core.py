@@ -1,5 +1,6 @@
 import pathlib
-from config import MCMETA_TEMPLATE, versions, NEW_TEMPLATE, make_entry
+import json
+from config import make_mcmeta_template, versions, make_item_template, make_entry
 
 def ensure_required_directories():
     dir_path = pathlib.Path("resource_packs")
@@ -38,7 +39,7 @@ def create_resource_pack():
             print(f"Version '{version}' is not supported. Please choose from the following versions: {', '.join(versions.keys())}")
         
         with open(pack_dir / "pack.mcmeta", "w") as f:
-            f.write(MCMETA_TEMPLATE.replace("<pack_format>", str(versions[version]["pack_format"])))
+            f.write(json.dumps(make_mcmeta_template(versions[version]["pack_format"]), indent=4))
 
         print(f"Created new resource pack: {pack_dir}, with version: {version}")
 
@@ -87,6 +88,11 @@ def choose_namespace(resource_pack: pathlib.Path):
     return namespace
 
 def add_new_model(namespace: str, resource_pack: pathlib.Path):
+    mcmeta_path = pathlib.Path(resource_pack / "pack.mcmeta")
+    with open(mcmeta_path, "r") as f:
+        mcmeta_data = json.load(f)
+    version = mcmeta_data["pack"]["pack_format"]
+
     models_dir = resource_pack / "assets" / namespace / "models" / "items"
     minecraft_dir = resource_pack / "assets" / "minecraft"
     models_dir.mkdir(parents=True, exist_ok=True)
@@ -96,12 +102,20 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
     model_file.copy_into(models_dir)
 
     choose_item = input("Enter the name of the item you want add the model to (e.g., 'paper'): ")
-    choose_item_file = minecraft_dir / "items" / f"{choose_item}.json"
+    minecraft_items_dir = minecraft_dir / "items"
+    minecraft_items_dir.mkdir(parents=True, exist_ok=True)
+    choose_item_file = minecraft_items_dir / f"{choose_item}.json"
 
-    choose_item_data = NEW_TEMPLATE.copy()
+    if choose_item_file.exists():
+        with open(choose_item_file, "r") as f:
+            choose_item_data = json.load(f)
+    else:
+        choose_item_data = make_item_template(version, choose_item)
     threshold = len(choose_item_data["model"]["entries"]) + 1
     choose_item_data["model"]["entries"].append(make_entry(f"{namespace}:{model_file.name}", threshold))
-    choose_item_file.write_text(str(NEW_TEMPLATE))
+    choose_item_file.write_text(json.dumps(choose_item_data, indent=4))
+    
+    print(f"Added model '{model_file.name}' to item '{choose_item}' in resource pack '{resource_pack.name}'.")
 
 def edit_resource_pack():
     selected_pack = choose_resource_pack()
