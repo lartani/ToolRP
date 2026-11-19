@@ -87,6 +87,13 @@ def choose_namespace(resource_pack: pathlib.Path):
 
     return namespace
 
+def get_textures(namespace: str, model_file: pathlib.Path):
+    textures_dir = namespace + "/textures"
+    with open(model_file, "r") as f:
+        model_data = json.load(f)
+    textures: dict = model_data.get("textures", {})
+    return ["/".join([textures_dir, texture.split(":")[1]+".png"]) for texture in textures.values()]
+
 def add_new_model(namespace: str, resource_pack: pathlib.Path):
     mcmeta_path = pathlib.Path(resource_pack / "pack.mcmeta")
     with open(mcmeta_path, "r") as f:
@@ -114,6 +121,16 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
     threshold = len(choose_item_data["model"]["entries"]) + 1
     choose_item_data["model"]["entries"].append(make_entry(f"{namespace}:{model_file.name}", threshold))
     choose_item_file.write_text(json.dumps(choose_item_data, indent=4))
+
+    for texture in get_textures(namespace, model_file):
+        texture_path = pathlib.Path(resource_pack / "assets" / texture)
+        texture_path.parent.mkdir(parents=True, exist_ok=True)
+        source_texture_path = model_file.parent / texture.split("/")[-1]
+        print(f"Copying texture from '{source_texture_path}' to '{texture_path}'")
+        if source_texture_path.exists():
+            source_texture_path.copy(texture_path)
+        else:
+            print(f"Warning: Texture file '{source_texture_path}' not found. Skipping.")
     
     print(f"Added model '{model_file.name}' to item '{choose_item}' in resource pack '{resource_pack.name}'.")
 
@@ -127,3 +144,7 @@ def edit_resource_pack():
             print("No namespace selected. Exiting edit mode.")
             return None
         add_new_model(namespace, selected_pack)
+
+
+if __name__ == "__main__":
+    print(get_textures("test", pathlib.Path("models/charm_coin.json")))  # Example usage of get_textures function
