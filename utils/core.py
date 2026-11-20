@@ -134,17 +134,8 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
     
     print(f"Added model '{model_file.name}' to item '{choose_item}' in resource pack '{resource_pack.name}'.")
 
-def edit_resource_pack():
-    selected_pack = choose_resource_pack()
-    if selected_pack:
-        # Placeholder for editing logic
-        print(f"Editing resource pack: {selected_pack.name}")    
-        namespace = choose_namespace(selected_pack)
-        if not namespace:
-            print("No namespace selected. Exiting edit mode.")
-            return None
-        add_new_model(namespace, selected_pack)
-
-
+def add_new_sound(namespace: str, resource_pack: pathlib.Path):
+    print("Functionality to add new sounds is not yet implemented.")
+    
 if __name__ == "__main__":
     print(get_textures("test", pathlib.Path("models/charm_coin.json")))  # Example usage of get_textures function
