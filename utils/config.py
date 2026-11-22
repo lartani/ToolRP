@@ -20,7 +20,7 @@ def make_item_template(pack_format: int, item: str):
         "index": 0,
         "fallback": {
           "type": "minecraft:model",
-          "model": "minecraft:item/{item}"
+          "model": f"minecraft:item/{item}"
         },
         "entries": [
 

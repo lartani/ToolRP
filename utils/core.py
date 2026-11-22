@@ -13,7 +13,7 @@ def create_resource_pack():
     pack_dir = pathlib.Path("resource_packs") / name
     if pack_dir.exists():
         print(f"A resource pack with the name '{name}' already exists. Try a different name.")
-        create_resource_pack()  # Prompt the user again for a new name
+        return create_resource_pack()  # Prompt the user again for a new name
     else:
         pack_dir.mkdir()
         assets_dir = pack_dir / "assets"
@@ -67,25 +67,25 @@ def choose_resource_pack():
             print("Invalid input. Please enter a number.")
 
 def choose_namespace(resource_pack: pathlib.Path):
-    namespace_dir = resource_pack / "assets"
-    namespaces = [d.name for d in namespace_dir.iterdir() if d.is_dir()]
+    assets_dir = resource_pack / "assets"
+    namespaces = [d.name for d in assets_dir.iterdir() if d.is_dir()]
     print(f"Available namespaces in {resource_pack.name}:")
     
-    for namespace_dir in namespaces:
-        print(f"- {namespace_dir}")
+    for namespace in namespaces:
+        print(f"- {namespace}")
     
     print("Create a new namespace by entering a name, or select an existing one by typing its name.")
-    namespace = input("Enter the name of the namespace: ")
+    chosen_namespace = input("Enter the name of the namespace: ")
     
-    if not namespace:
+    if not chosen_namespace:
         return None
     
-    if namespace not in namespaces:
-        new_namespace_dir = namespace_dir / namespace
+    if chosen_namespace not in namespaces:
+        new_namespace_dir = assets_dir / chosen_namespace
         new_namespace_dir.mkdir()
-        print(f"Created new namespace: {namespace}")
+        print(f"Created new namespace: {chosen_namespace}")
 
-    return namespace
+    return chosen_namespace
 
 def get_textures(namespace: str, model_file: pathlib.Path):
     textures_dir = namespace + "/textures"
@@ -100,7 +100,7 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
         mcmeta_data = json.load(f)
     version = mcmeta_data["pack"]["pack_format"]
 
-    models_dir = resource_pack / "assets" / namespace / "models" / "items"
+    models_dir = resource_pack / "assets" / namespace / "models" / "item"
     minecraft_dir = resource_pack / "assets" / "minecraft"
     models_dir.mkdir(parents=True, exist_ok=True)
 
@@ -109,7 +109,7 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
     model_file.copy_into(models_dir)
 
     choose_item = input("Enter the name of the item you want add the model to (e.g., 'paper'): ")
-    minecraft_items_dir = minecraft_dir / "items"
+    minecraft_items_dir = minecraft_dir / "item"
     minecraft_items_dir.mkdir(parents=True, exist_ok=True)
     choose_item_file = minecraft_items_dir / f"{choose_item}.json"
 
@@ -119,7 +119,7 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
     else:
         choose_item_data = make_item_template(version, choose_item)
     threshold = len(choose_item_data["model"]["entries"]) + 1
-    choose_item_data["model"]["entries"].append(make_entry(f"{namespace}:{model_file.name}", threshold))
+    choose_item_data["model"]["entries"].append(make_entry(f"{namespace}:item/{model_file.stem}", threshold))
     choose_item_file.write_text(json.dumps(choose_item_data, indent=4))
 
     for texture in get_textures(namespace, model_file):

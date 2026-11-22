@@ -1,8 +1,6 @@
 import os
 from core import ensure_required_directories, create_resource_pack, choose_resource_pack, add_new_model, choose_namespace
 
-ensure_required_directories()
-
 def edit_resource_pack():
     selected_pack = choose_resource_pack()
     if selected_pack:
@@ -15,11 +13,12 @@ def edit_resource_pack():
         
         add_new_model(namespace, selected_pack)
 
-def get_options(options):
+def print_options(options):
     for key, value in options.items():
         print(f"{key}. {value[0]}")
 
-def choose_option(options):
+def run_menu(options):
+    print_options(options)
     while True:
         try:
             choice: int = int(input("Enter your choice: "))
@@ -28,18 +27,24 @@ def choose_option(options):
             continue
 
         if choice in options.keys():
+            if options[choice][1] is None:
+                print("Bye!")
+                break
             options[choice][1]()
-            get_options(options)  # Show options again after executing the chosen function
+            print_options(options)  # Show options again after executing the chosen function
         else:
             print("Invalid choice. Please select a valid option.")
 
 options = {
-    1: ["Create a new resource pack", create_resource_pack],
-    2: ["Edit an existing resource pack", edit_resource_pack],
+    1: ("Create a new resource pack", create_resource_pack),
+    2: ("Edit an existing resource pack", edit_resource_pack),
+    3: ("Exit", None)
 }
 
 if __name__ == "__main__":
+    ensure_required_directories()
     print("Welcome to ToolRP! This is a utility to creating and editing resource packs for Minecraft!")
-    print("Please select an option:")
-    get_options(options)
-    choose_option(options)
+    try:
+        run_menu(options)
+    except (KeyboardInterrupt, EOFError):
+        print("Bye!")
