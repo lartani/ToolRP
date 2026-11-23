@@ -1,16 +1,21 @@
 import pathlib
 import json
+from shutil import make_archive
 from config import make_mcmeta_template, versions, make_item_template, make_entry
 
+PROJECT_DIR = pathlib.Path(__file__).resolve().parents[1]
+RESOURCE_PACKS_DIR = PROJECT_DIR / "resource_packs"
+EXPORTED_PACKS_DIR = PROJECT_DIR / "exported_packs"
+
 def ensure_required_directories():
-    dir_path = pathlib.Path("resource_packs")
+    dir_path = RESOURCE_PACKS_DIR
     if not dir_path.exists():
         dir_path.mkdir()
         print(f"Created required directory: {dir_path}")
 
 def create_resource_pack():
     name = input("Enter the name of the new resource pack: ")
-    pack_dir = pathlib.Path("resource_packs") / name
+    pack_dir = RESOURCE_PACKS_DIR / name
     if pack_dir.exists():
         print(f"A resource pack with the name '{name}' already exists. Try a different name.")
         return create_resource_pack()  # Prompt the user again for a new name
@@ -44,7 +49,7 @@ def create_resource_pack():
         print(f"Created new resource pack: {pack_dir}, with version: {version}")
 
 def choose_resource_pack():
-    packs_dir = pathlib.Path("resource_packs")
+    packs_dir = RESOURCE_PACKS_DIR
     packs = [path for path in packs_dir.iterdir() if path.is_dir()]
 
     if not packs:
@@ -136,6 +141,16 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
 
 def add_new_sound(namespace: str, resource_pack: pathlib.Path):
     print("Functionality to add new sounds is not yet implemented.")
+
+def export_pack(resource_pack: pathlib):
+    if not resource_pack:
+        print("No resource pack selected for export.")
+        return
+    output_dir = EXPORTED_PACKS_DIR
+    output_dir.mkdir(exist_ok=True, parents=True)
+    make_archive(str(output_dir / resource_pack.stem), 'zip', root_dir=resource_pack)
+    print(f"Exported resource pack '{resource_pack.stem}' as a zip file.")
     
 if __name__ == "__main__":
     print(get_textures("test", pathlib.Path("models/charm_coin.json")))  # Example usage of get_textures function
+    export_pack(RESOURCE_PACKS_DIR / "test")

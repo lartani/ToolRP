@@ -1,5 +1,5 @@
 import os
-from core import ensure_required_directories, create_resource_pack, choose_resource_pack, add_new_model, choose_namespace
+from core import ensure_required_directories, create_resource_pack, choose_resource_pack, add_new_model, choose_namespace, export_pack
 
 def edit_resource_pack():
     selected_pack = choose_resource_pack()
@@ -38,7 +38,8 @@ def run_menu(options):
 options = {
     1: ("Create a new resource pack", create_resource_pack),
     2: ("Edit an existing resource pack", edit_resource_pack),
-    3: ("Exit", None)
+    3: ("Export a resource pack", lambda: export_pack(choose_resource_pack())),
+    4: ("Exit", None)
 }
 
 if __name__ == "__main__":
