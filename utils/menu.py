@@ -1,21 +1,31 @@
 import os
-from core import ensure_required_directories, create_resource_pack, choose_resource_pack, add_new_model, choose_namespace, export_pack
+from core.models import add_new_model
+from core.packs import (
+    ensure_required_directories,
+    create_resource_pack,
+    choose_resource_pack,
+    choose_namespace,
+    export_pack,
+)
+
 
 def edit_resource_pack():
     selected_pack = choose_resource_pack()
     if selected_pack:
         # Placeholder for editing logic
-        print(f"Editing resource pack: {selected_pack.name}")    
+        print(f"Editing resource pack: {selected_pack.name}")
         namespace = choose_namespace(selected_pack)
         if not namespace:
             print("No namespace selected. Exiting edit mode.")
             return None
-        
+
         add_new_model(namespace, selected_pack)
+
 
 def print_options(options):
     for key, value in options.items():
         print(f"{key}. {value[0]}")
+
 
 def run_menu(options):
     print_options(options)
@@ -31,20 +41,25 @@ def run_menu(options):
                 print("Bye!")
                 break
             options[choice][1]()
-            print_options(options)  # Show options again after executing the chosen function
+            print_options(
+                options
+            )  # Show options again after executing the chosen function
         else:
             print("Invalid choice. Please select a valid option.")
+
 
 options = {
     1: ("Create a new resource pack", create_resource_pack),
     2: ("Edit an existing resource pack", edit_resource_pack),
     3: ("Export a resource pack", lambda: export_pack(choose_resource_pack())),
-    4: ("Exit", None)
+    4: ("Exit", None),
 }
 
 if __name__ == "__main__":
     ensure_required_directories()
-    print("Welcome to ToolRP! This is a utility to creating and editing resource packs for Minecraft!")
+    print(
+        "Welcome to ToolRP! This is a utility to creating and editing resource packs for Minecraft!"
+    )
     try:
         run_menu(options)
     except (KeyboardInterrupt, EOFError):
