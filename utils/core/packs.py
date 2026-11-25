@@ -1,7 +1,7 @@
 import pathlib
 import json
 from shutil import make_archive
-from config import (
+from ..config import (
     make_mcmeta_template,
     versions,
     make_item_template,

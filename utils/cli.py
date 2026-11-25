@@ -1,6 +1,6 @@
 import os
-from core.models import add_new_model
-from core.packs import (
+from .core.models import add_new_model
+from .core.packs import (
     ensure_required_directories,
     create_resource_pack,
     choose_resource_pack,
