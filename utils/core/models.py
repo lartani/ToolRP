@@ -25,9 +25,8 @@ def get_textures(namespace: str, model_file: pathlib.Path):
     ]
 
 
-def add_new_model(namespace: str, resource_pack: pathlib.Path):
+def add_new_model(namespace: str, resource_pack: pathlib.Path, model_file: pathlib.Path, item: str, overwrite: bool = False):
     exist = False  # Flag to track if the model already exists
-    overwrite = "n"  # Default value for overwrite
     mcmeta_path = pathlib.Path(resource_pack / "pack.mcmeta")
     with open(mcmeta_path, "r") as f:
         mcmeta_data = json.load(f)
@@ -37,51 +36,41 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
     minecraft_dir = resource_pack / "assets" / "minecraft"
     models_dir.mkdir(parents=True, exist_ok=True)
 
-    while True:
-        model_path = input(
-            "Enter a path to the model file you want to add (e.g., 'models/my_item.json'): "
-        )
-        model_file = pathlib.Path(model_path)
-        if not model_file.is_file():
-            print(f"Error: The file '{model_file}' does not exist. Please try again.")
-            continue
+    if not model_file.is_file():
+        raise FileNotFoundError(f"Model file {model_file} does not exist.")
 
-        try:
-            target_model_path = models_dir / model_file.name
-            if target_model_path.is_file():
-                overwrite = input(
-                    f"The model '{model_file.name}' already exists. Do you want to overwrite it? (y/n): "
-                )
-                if overwrite.lower() != "y":
-                    print("Please provide a different model file.")
-                    continue
-                else:
-                    print(
-                        f"Overwriting existing model '{model_file.name}' in resource pack '{resource_pack.name}'."
-                    )
-            model_file.copy_into(models_dir)
-        except OSError as e:
-            print(f"Details: {e}")
-            continue
-        break
+    target_model_path = models_dir / model_file.name
+    if target_model_path.is_file():
+        if not overwrite:
+            raise FileExistsError(f"Model file {target_model_path} already exists. Set overwrite=True to replace it.")
 
-    choose_item = input(
-        "Enter the name of the item you want add the model to (e.g., 'paper'): "
-    )
+    textures = get_textures(namespace, model_file)
+
+    for texture in textures:
+        texture_path = pathlib.Path(resource_pack / "assets" / texture)
+        texture_path.parent.mkdir(parents=True, exist_ok=True)
+        source_texture_path = model_file.parent / texture.split("/")[-1]
+        if not source_texture_path.exists():
+            raise FileNotFoundError(f"Texture file {source_texture_path} does not exist for model {model_file}.")
+
+    for texture in textures:
+        texture_path = pathlib.Path(resource_pack / "assets" / texture)
+        texture_path.parent.mkdir(parents=True, exist_ok=True)
+        source_texture_path = model_file.parent / texture.split("/")[-1]
+        source_texture_path.copy(texture_path)
 
     minecraft_items_dir = minecraft_dir / "item"
     minecraft_items_dir.mkdir(parents=True, exist_ok=True)
-    choose_item_file = minecraft_items_dir / f"{choose_item}.json"
+    choose_item_file = minecraft_items_dir / f"{item}.json"
 
     if choose_item_file.is_file():
         with open(choose_item_file, "r") as f:
             choose_item_data = json.load(f)
     else:
-        choose_item_data = make_item_template(version, choose_item)
+        choose_item_data = make_item_template(version, item)
 
     for entry in choose_item_data["model"]["entries"]:
         if entry["model"]["model"] == f"{namespace}:item/{model_file.stem}":
-            print("Passing the model to the item will overwrite the existing entry.")
             exist = True
 
     if not exist:
@@ -91,29 +80,6 @@ def add_new_model(namespace: str, resource_pack: pathlib.Path):
         )
         choose_item_file.write_text(json.dumps(choose_item_data, indent=4))
 
-    for texture in get_textures(namespace, model_file):
-        texture_path = pathlib.Path(resource_pack / "assets" / texture)
-        texture_path.parent.mkdir(parents=True, exist_ok=True)
-        source_texture_path = model_file.parent / texture.split("/")[-1]
-        if source_texture_path.exists():
-            print(f"Copying texture from '{source_texture_path}' to '{texture_path}'")
-            source_texture_path.copy(texture_path)
-        else:
-            print(f"Warning: Texture file '{source_texture_path}' not found.")
-            skip = input(f"Do you want to skip adding the texture '{texture}'? (y/n):")
-            if skip.lower() == "y":
-                print(f"Skipping texture '{texture}'.")
-            else:
-                return print(
-                    f"Please ensure the texture file '{source_texture_path}' exists."
-                )
+    model_file.copy_into(models_dir)
 
-    return print(
-        f"Added model '{model_file.name}' to item '{choose_item}' in resource pack '{resource_pack.name}'."
-    )
-
-
-if __name__ == "__main__":
-    namespace = "my_namespace"
-    resource_pack = RESOURCE_PACKS_DIR / "test"
-    add_new_model(namespace, resource_pack)
+    return target_model_path
