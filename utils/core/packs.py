@@ -71,10 +71,9 @@ def get_resource_pack(name: str):
 
 
 def export_pack(resource_pack: pathlib.Path):
-    if not resource_pack:
-        print("No resource pack selected for export.")
-        return
+    if not resource_pack.is_dir():
+        raise ValueError("Resource pack path must be a directory.")
     output_dir = EXPORTED_PACKS_DIR
     output_dir.mkdir(exist_ok=True, parents=True)
     make_archive(str(output_dir / resource_pack.stem), "zip", root_dir=resource_pack)
-    print(f"Exported resource pack '{resource_pack.stem}' as a zip file.")
+    return output_dir / f"{resource_pack.stem}.zip"

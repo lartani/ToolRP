@@ -15,7 +15,6 @@ def print_options(options):
     for key, value in options.items():
         print(f"{key}. {value[0]}")
 
-
 def create_pack_menu():
     name = input("Enter the name of the new resource pack: ")
     for ver in versions.keys():
@@ -49,7 +48,9 @@ def list_namespaces(resource_pack: Path):
 def edit_resource_pack():
     list_resource_packs()
     while True:
-        name = input("Enter the name of the resource pack to edit: ")
+        name = input("Enter the name of the resource pack to edit (or type 'exit' to leave): ")
+        if name.lower() == "exit":
+            return name
         try:
             selected_pack = get_resource_pack(name)
             break
@@ -72,6 +73,27 @@ def edit_resource_pack():
                 print(e)
 
         add_new_model(namespace, selected_pack)
+
+def export_menu():
+    list_resource_packs()
+    while True:
+        name = input("Enter the name of the resource pack to export (or type 'exit' to leave): ")
+        if name.lower() == 'exit':
+            print("Exiting export mode.")
+            return None
+        try:
+            selected_pack = get_resource_pack(name)
+            break
+        except FileNotFoundError as e:
+            print(e)
+    print(f"Exporting resource pack: {selected_pack.name}")
+    try:
+        exported_file = export_pack(selected_pack)
+    except ValueError as e:
+        print(e)
+        return None
+    print(f"Exported resource pack '{selected_pack.name}' as a zip file at: {exported_file}")
+
 
 def run_menu(options):
     print_options(options)
@@ -97,7 +119,7 @@ def run_menu(options):
 options = {
     1: ("Create a new resource pack", create_pack_menu),
     2: ("Edit an existing resource pack", edit_resource_pack),
-    3: ("Export a resource pack", lambda: export_pack(get_resource_pack(input("Enter the name of the resource pack to export: ")))),
+    3: ("Export a resource pack", export_menu),
     4: ("Exit", None),
 }
 
