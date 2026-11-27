@@ -42,43 +42,26 @@ def choose_namespace(resource_pack: pathlib.Path):
     return chosen_namespace
 
 
-def create_resource_pack():
-    name = input("Enter the name of the new resource pack: ")
+def create_resource_pack(name: str, version: str | None = None):
     pack_dir = RESOURCE_PACKS_DIR / name
     if pack_dir.exists():
-        print(
-            f"A resource pack with the name '{name}' already exists. Try a different name."
-        )
-        return create_resource_pack()  # Prompt the user again for a new name
+        raise FileExistsError(f"Resource pack '{name}' already exists. Please choose a different name.")
     else:
+
+        if not version:
+            version = list(versions.keys())[
+                0
+            ]  # Default to the latest version if no input is provided
+
+        if version not in versions:
+            raise ValueError(f"Version '{version}' is not supported. Supported versions: {list(versions.keys())}")
+
         pack_dir.mkdir()
         assets_dir = pack_dir / "assets"
         assets_dir.mkdir()
 
         minecraft_dir = assets_dir / "minecraft"
         minecraft_dir.mkdir()
-        print("Available Minecraft versions:")
-
-        for ver in versions.keys():
-            print(f"- {ver}")
-
-        while True:
-            version = input(
-                "Enter the version of minecraft, you would like to create(default latest): "
-            )
-            if not version:
-                version = list(versions.keys())[
-                    0
-                ]  # Default to the latest version if no input is provided
-                print("Choosing the latest version by default.")
-                break
-
-            if version in versions:
-                break
-
-            print(
-                f"Version '{version}' is not supported. Please choose from the following versions: {', '.join(versions.keys())}"
-            )
 
         with open(pack_dir / "pack.mcmeta", "w") as f:
             f.write(
@@ -87,7 +70,7 @@ def create_resource_pack():
                 )
             )
 
-        print(f"Created new resource pack: {pack_dir}, with version: {version}")
+        return pack_dir
 
 
 def choose_resource_pack():

@@ -1,4 +1,5 @@
 import os
+from .config import versions
 from .core.models import add_new_model
 from .core.packs import (
     ensure_required_directories,
@@ -27,6 +28,20 @@ def print_options(options):
         print(f"{key}. {value[0]}")
 
 
+def create_pack_menu():
+    name = input("Enter the name of the new resource pack: ")
+    for ver in versions.keys():
+        print(f"- {ver}")
+    version = input("Enter the Minecraft version (or leave blank for default): ")
+    if not version:
+        version = None  # Default to the latest version if no input is provided
+
+    try: 
+        return create_resource_pack(name, version)
+    except (FileExistsError, ValueError) as e:
+        print(e)
+
+
 def run_menu(options):
     print_options(options)
     while True:
@@ -49,7 +64,7 @@ def run_menu(options):
 
 
 options = {
-    1: ("Create a new resource pack", create_resource_pack),
+    1: ("Create a new resource pack", create_pack_menu),
     2: ("Edit an existing resource pack", edit_resource_pack),
     3: ("Export a resource pack", lambda: export_pack(choose_resource_pack())),
     4: ("Exit", None),
