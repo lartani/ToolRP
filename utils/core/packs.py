@@ -18,28 +18,18 @@ def ensure_required_directories():
         print(f"Created required directory: {dir_path}")
 
 
-def choose_namespace(resource_pack: pathlib.Path):
+def get_namespace(namespace: str, resource_pack: pathlib.Path):
     assets_dir = resource_pack / "assets"
     namespaces = [d.name for d in assets_dir.iterdir() if d.is_dir()]
-    print(f"Available namespaces in {resource_pack.name}:")
 
-    for namespace in namespaces:
-        print(f"- {namespace}")
+    if not namespace:
+        raise ValueError("Namespace cannot be empty. Please provide a valid namespace.")
 
-    print(
-        "Create a new namespace by entering a name, or select an existing one by typing its name."
-    )
-    chosen_namespace = input("Enter the name of the namespace: ")
-
-    if not chosen_namespace:
-        return None
-
-    if chosen_namespace not in namespaces:
-        new_namespace_dir = assets_dir / chosen_namespace
+    if namespace not in namespaces:
+        new_namespace_dir = assets_dir / namespace
         new_namespace_dir.mkdir()
-        print(f"Created new namespace: {chosen_namespace}")
 
-    return chosen_namespace
+    return namespace
 
 
 def create_resource_pack(name: str, version: str | None = None):
@@ -73,28 +63,11 @@ def create_resource_pack(name: str, version: str | None = None):
         return pack_dir
 
 
-def choose_resource_pack():
-    packs_dir = RESOURCE_PACKS_DIR
-    packs = [path for path in packs_dir.iterdir() if path.is_dir()]
-
-    if not packs:
-        print("No resource packs found. Please create a new resource pack first.")
-        return None
-
-    print("Available resource packs:")
-    for i, pack in enumerate(packs, start=1):
-        print(f"{i}. {pack.name}")
-
-    while True:
-        try:
-            choice = int(input("Enter resource pack number to edit: "))
-            if 1 <= choice <= len(packs):
-                selected_pack = packs[choice - 1]
-                print(f"Selected resource pack: {selected_pack.name}")
-                return selected_pack
-            print("Invalid choice. Please select a valid number.")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
+def get_resource_pack(name: str):
+    pack = RESOURCE_PACKS_DIR / name
+    if not pack.exists():
+        raise FileNotFoundError(f"Resource pack '{name}' does not exist.")
+    return pack
 
 
 def export_pack(resource_pack: pathlib.Path):
